@@ -3,7 +3,7 @@
 import sys
 sys.path.append("src")  # Ensure the src/ folder is on the path
 
-from adapters.scrapers.firecrawl import FirecrawlAdapter
+from adapters.scrapers.firecrawl_adapter import FirecrawlAdapter
 from adapters.scrapers.youtube import YouTubeAdapter
 from adapters.scrapers.images import ImageAdapter
 
