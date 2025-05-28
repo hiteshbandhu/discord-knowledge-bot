@@ -94,6 +94,8 @@ The following diagram illustrates the high-level system architecture:
 | `fastapi`          | (If used) For any web server or API endpoints.                                         |
 | `tqdm`, `rich`     | Progress bars and rich logging (for development/debugging).                            |
 | `pytest`           | (If used) For testing adapters and other components.                                   |
+| `chromadb`         | Vector database for semantic search and embeddings (ChromaDB, persisted locally).         |
+| `psycopg2-binary`  | PostgreSQL driver for Python (used for NeonDB, not SQLite).                              |
 
 *For a full list, see [`requirements.txt`](requirements.txt).*
 
@@ -104,12 +106,14 @@ The following diagram illustrates the high-level system architecture:
 | `DISCORD_TOKEN`    | Your Discord bot token                      |
 | `FIRECRAWL_API_KEY`| API key for Firecrawl (web scraping)        |
 | `GEMINI_API_KEY`   | API key for Gemini (LLM summarization)      |
+| `NEON_DB_URL`      | Connection string for NeonDB (Postgres)     |
 
 Add these to your `.env` file in the project root:
 ```
 DISCORD_TOKEN=your_discord_bot_token
 FIRECRAWL_API_KEY=your_firecrawl_api_key
 GEMINI_API_KEY=your_gemini_api_key
+NEON_DB_URL=your_neon_postgres_connection_url
 ```
 
 ---
@@ -140,12 +144,31 @@ pip install -r requirements.txt
 ### 4. Configure Environment Variables
 - Create a `.env` file in the root directory with the required keys (see above).
 - You may also need API keys for Firecrawl and Gemini, depending on your adapters.
+- **For NeonDB (Postgres):** Set `NEON_DB_URL` to your NeonDB connection string.
 
-### 5. Set Up Your Discord Bot
+### 5. Set Up Your Databases
+
+#### NeonDB (Postgres)
+- Run the migration script to create the required tables and indexes:
+```bash
+python src/database/scripts/migrate_to_neon_db.py
+```
+- This will connect to your NeonDB instance and set up the schema.
+
+#### ChromaDB (Vector DB)
+- ChromaDB is used for vector search and is persisted locally in `_data/vector_data_chroma`.
+- No extra setup is needed; the database will be initialized automatically when you run the bot.
+- **Setup precaution:** As a best practice, you can run the following command once to ensure the ChromaDB vector store and collection are initialized:
+```bash
+python src/database/chroma_db.py
+```
+- See `src/database/chroma_db.py` for details.
+
+### 6. Set Up Your Discord Bot
 - Follow the official Discord guide: [Setting Up a Discord Bot](https://discordpy.readthedocs.io/en/stable/discord.html)
 - Ensure you enable the "Message Content Intent" in the Discord Developer Portal for your bot.
 
-### 6. Run the Bot
+### 7. Run the Bot
 ```bash
 python main.py
 ```

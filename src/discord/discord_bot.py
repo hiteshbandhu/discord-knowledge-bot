@@ -4,6 +4,7 @@ from services.scrape.scrape_links import scrape
 from utils.detect_link_type import detect_scraper_type
 import re
 import logging
+from services.persist.persist_to_db import persist_to_db
 
 # Configure logging
 logging.basicConfig(
@@ -49,6 +50,10 @@ async def on_message(message: discord.Message):
             
             data = scrape(scraper_type, url)
             logger.info(f"Successfully scraped data from {url}")
+
+            # Persist to DB and send result message
+            persist_result = persist_to_db(data)
+            await message.channel.send(f"Persistence: {persist_result}")
 
             embed = discord.Embed(
                 title=data.title or f"{scraper_type.capitalize()} content",
