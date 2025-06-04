@@ -32,6 +32,28 @@ async def on_message(message: discord.Message):
     if message.author.bot:
         return
 
+    # --- NEW: Handle @Web search queries ---
+    if message.content.strip().lower().startswith("@web"):
+        query = message.content.strip()[4:].strip()
+        if not query:
+            await message.channel.send("Please provide a search query after @Web.")
+            return
+        try:
+            from database.chroma_db import query_document
+            logger.info(f"@Web search query: {query}")
+            results = query_document(query_text=query, n_results=3)
+            docs = results.get("documents", [[]])[0]
+            if not docs or all(not doc for doc in docs):
+                await message.channel.send(f"No results found for: {query}")
+                return
+            response = "\n\n".join(f"**Result {i+1}:**\n{doc[:1000]}{'...' if doc and len(doc) > 1000 else ''}" for i, doc in enumerate(docs) if doc)
+            await message.channel.send(f"**Top results for:** `{query}`\n\n{response}")
+        except Exception as e:
+            logger.error(f"Error in @Web search: {str(e)}", exc_info=True)
+            await message.channel.send(f"❌ Failed to search: `{query}`\n```{str(e)}```")
+        return
+    # --- END NEW ---
+
     urls = extract_urls(message.content)
 
     for attachment in message.attachments:
