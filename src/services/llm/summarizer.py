@@ -1,4 +1,4 @@
-from src.services.llm.gemini import generate_text_from_prompt
+from .gemini import summarize_text
 
 def summarize_entries(entries: list[tuple]) -> str:
     """Summarizes a list of database entries into a single, readable summary."""
@@ -15,5 +15,5 @@ def summarize_entries(entries: list[tuple]) -> str:
     prompt = f"Please summarize the following entries into a concise list of bullet points. Each bullet point should represent one entry and be a single sentence:\n\n{content_to_summarize}"
 
     # Generate the summary
-    summarized_text = generate_text_from_prompt(prompt)
+    summarized_text = summarize_text(prompt)
     return summarized_text

@@ -1,4 +1,4 @@
-from src.database.pg_database import get_recent_entries
+from database.pg_database import get_recent_entries
 
 def generate_briefing():
     """Fetches recent entries and formats them into a briefing."""
