@@ -50,3 +50,19 @@ def get_by_url(url: str):
             return row
     finally:
         conn.close()
+
+def get_recent_entries(limit: int = 10):
+    conn = psycopg2.connect(DATABASE_URL)
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT url, summary, created_at
+                FROM scraped_content
+                WHERE created_at >= NOW() - INTERVAL '24 hours'
+                ORDER BY created_at DESC
+                LIMIT %s
+            """, (limit,))
+            rows = cur.fetchall()
+            return rows
+    finally:
+        conn.close()
