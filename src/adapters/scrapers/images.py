@@ -4,7 +4,7 @@ import requests
 from models.adapter import ContentAdapter
 from models.database import ExtractedContent
 from services.llm.gemini import describe_image
-    
+
 class ImageAdapter(ContentAdapter):
     @classmethod
     def extract(cls, image_url: str) -> ExtractedContent:

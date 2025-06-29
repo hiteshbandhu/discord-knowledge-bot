@@ -1,10 +1,21 @@
 import discord
+from discord import app_commands
 import os
+from discord.ext import tasks
+from datetime import time
+import pytz
+from services.daily_briefing import generate_briefing
 from services.scrape.scrape_links import scrape
 from utils.detect_link_type import detect_scraper_type
 import re
 import logging
 from services.persist.persist_to_db import persist_to_db
+from src.database.pg_database import get_recent_entries
+from src.services.llm.summarizer import summarize_entries
+
+# --- Constants ---
+BRIEFING_TIME = time(hour=0, minute=0, tzinfo=pytz.timezone('Asia/Kolkata'))
+BRIEFING_CHANNEL_ID = 1377194701551173662
 
 # Configure logging
 logging.basicConfig(
@@ -17,15 +28,49 @@ intents = discord.Intents.default()
 intents.messages = True
 intents.message_content = True
 
-bot = discord.Client(intents=intents)
+class MyClient(discord.Client):
+    def __init__(self, *, intents: discord.Intents):
+        super().__init__(intents=intents)
+        self.tree = app_commands.CommandTree(self)
+
+    async def setup_hook(self):
+        await self.tree.sync()
+
+bot = MyClient(intents=intents)
 
 def extract_urls(text: str) -> list[str]:
-    # Finds all http/https URLs in the message
     return re.findall(r'https?://[^\s]+', text)
+
+@tasks.loop(time=BRIEFING_TIME)
+async def send_daily_briefing():
+    """Sends the daily briefing to the specified channel."""
+    channel = bot.get_channel(BRIEFING_CHANNEL_ID)
+    if channel:
+        briefing = generate_briefing()
+        await channel.send(briefing)
+    else:
+        logger.error(f"Could not find channel with ID {BRIEFING_CHANNEL_ID}")
 
 @bot.event
 async def on_ready():
     logger.info(f"Bot logged in as {bot.user}")
+    send_daily_briefing.start()
+
+@bot.tree.command(name="brief", description="Get a real-time summary of the latest knowledge.")
+async def brief(interaction: discord.Interaction):
+    """Generates an on-demand summary of recent entries."""
+    await interaction.response.defer()
+    try:
+        entries = get_recent_entries(limit=10)
+        if not entries:
+            await interaction.followup.send("No new knowledge captured in the last 24 hours.")
+            return
+
+        summary = summarize_entries(entries)
+        await interaction.followup.send(f"**Here's a quick summary of what I've learned recently:**\n\n{summary}")
+    except Exception as e:
+        logger.error(f"Error generating brief: {str(e)}", exc_info=True)
+        await interaction.followup.send("❌ An error occurred while generating the summary.")
 
 @bot.event
 async def on_message(message: discord.Message):
