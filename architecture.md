@@ -94,16 +94,7 @@ Let's visualize how data moves through the system.
 
 ### 4.2. Daily Briefing Data Flow
 
-This diagram illustrates how the daily briefing is generated and delivered.
-
-```mermaid
-graph TD
-    J[Scheduler (Internal)] -->|1. Triggers Daily Briefing| K(Daily Briefing Service)
-    K -->|2. Fetches Recent Entries| L[PostgreSQL Database]
-    L -->|3. Recent Entries| M(LLM Summarizer Service)
-    M -->|4. Summarized Text| N(Discord Bot Core)
-    N -->|5. Sends Briefing to Channel| O[Discord Channel]
-```
+[[DIAGRAM IN [README](./README.md)]]
 
 **Explanation:**
 1.  An internal `Scheduler` (part of the bot's core) triggers the `Daily Briefing Service` at a set time.
