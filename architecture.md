@@ -81,19 +81,7 @@ Let's visualize how data moves through the system.
 
 ### 4.1. Overall Data Flow (Scraping to Storage)
 
-This diagram shows the journey of information from a user's command to its storage in our databases.
-
-```mermaid
-graph TD
-    A[Discord User] -->|1. Issues /scrape command with URL| B(Discord Bot Core)
-    B -->|2. Detects link type| C{Link Type?}
-    C --&gt;|3a. Web Page| D[Web Scraper (Firecrawl)]
-    C --&gt;|3b. YouTube Video| E[YouTube Scraper]
-    C --&gt;|3c. Image| F[Image Scraper]
-    D & E & F -->|4. Extracted Content| G(Persistence Service)
-    G -->|5a. Store Raw Content & Metadata| H[PostgreSQL Database]
-    G -->|5b. Generate Embeddings & Store| I[ChromaDB (Vector Database)]
-```
+[[DIAGRAM IN [README](./README.md)]]
 
 **Explanation:**
 1.  A Discord user tells the bot to `/scrape` a URL.
