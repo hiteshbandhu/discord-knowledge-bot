@@ -1,0 +1,1 @@
+To run the bot, activate the `discord-env` environment first.

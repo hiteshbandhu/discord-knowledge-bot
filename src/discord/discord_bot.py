@@ -10,11 +10,11 @@ from utils.detect_link_type import detect_scraper_type
 import re
 import logging
 from services.persist.persist_to_db import persist_to_db
-from src.database.pg_database import get_recent_entries
-from src.services.llm.summarizer import summarize_entries
+from database.pg_database import get_recent_entries
+from services.llm.summarizer import summarize_entries
 
 # --- Constants ---
-BRIEFING_TIME = time(hour=0, minute=0, tzinfo=pytz.timezone('Asia/Kolkata'))
+BRIEFING_TIME = time(hour=18, minute=30, tzinfo=pytz.utc)
 BRIEFING_CHANNEL_ID = 1377194701551173662
 
 # Configure logging
@@ -59,14 +59,20 @@ async def on_ready():
 @bot.tree.command(name="brief", description="Get a real-time summary of the latest knowledge.")
 async def brief(interaction: discord.Interaction):
     """Generates an on-demand summary of recent entries."""
-    await interaction.response.defer()
+    logger.info(f"Brief command invoked by {interaction.user.name} ({interaction.user.id})")
+    await interaction.response.defer(ephemeral=True)
     try:
+        logger.info("Fetching recent entries for brief command...")
         entries = get_recent_entries(limit=10)
+        logger.info(f"Fetched {len(entries)} entries for brief command.")
         if not entries:
             await interaction.followup.send("No new knowledge captured in the last 24 hours.")
+            logger.info("No entries found for brief command.")
             return
 
+        logger.info("Summarizing entries for brief command...")
         summary = summarize_entries(entries)
+        logger.info("Summary generated for brief command. Sending response.")
         await interaction.followup.send(f"**Here's a quick summary of what I've learned recently:**\n\n{summary}")
     except Exception as e:
         logger.error(f"Error generating brief: {str(e)}", exc_info=True)
